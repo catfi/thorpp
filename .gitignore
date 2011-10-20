@@ -1,3 +1,5 @@
+.cproject
+.project
 build/*
 build_dbg/*
 build_rel/*
