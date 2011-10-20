@@ -40,9 +40,7 @@
 		{ \
 			template<typename ParserAttribute, typename ParserContext> \
 			void operator()(ParserAttribute& parser_attribute, ParserContext& context, bool& passed) const \
-			{ \
-				if(!getParserContext().enable_semantic_action) \
-					return;
+			{
 
 #define BEGIN_TEMPLATED_ACTION(name, ...) \
 		template<__VA_ARGS__> \
@@ -50,9 +48,7 @@
 		{ \
 			template<typename ParserAttribute, typename ParserContext> \
 			void operator()(ParserAttribute& parser_attribute, ParserContext& context, bool& passed) const \
-			{ \
-				if(!getParserContext().enable_semantic_action) \
-					return;
+			{
 
 #define END_ACTION \
 			} \

@@ -8,7 +8,7 @@ cmake_minimum_required(VERSION 2.6.3)
 
 project(giggle)
 
-find_package(Boost REQUIRED program_options)
+find_package(Boost REQUIRED program_options system filesystem)
 
 set(PROJECT_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 

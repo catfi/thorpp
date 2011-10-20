@@ -17,28 +17,21 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_CG_ACTION_CPPACTION_H_
-#define ZILLIANS_CG_ACTION_CPPACTION_H_
+#ifndef UNICODEUTIL_H_
+#define UNICODEUTIL_H_
 
-#include "cg/action/Common.h"
+#include "cg/Prerequisite.h"
 
-namespace zillians { namespace cg { namespace action {
+namespace zillians {
 
-struct CppAction
-{
-	struct start
-	{
-		DEFINE_ATTRIBUTES(void)
-		DEFINE_LOCALS()
+void utf8_to_ucs4(const std::string& input, std::wstring& output);
+void ucs4_to_utf8(const std::wstring& input, std::string& output);
 
-		BEGIN_ACTION(init)
-		{
+void wcs_to_cstr(const wchar_t* src, char* dest);
+void cstr_to_wcs(const char* src, wchar_t* dest);
+std::wstring s_to_ws(std::string s);
+std::string ws_to_s(std::wstring ws);
 
-		}
-		END_ACTION
-	};
-};
+}
 
-} } }
-
-#endif /* ZILLIANS_CG_ACTION_CPPACTION_H_ */
+#endif /* UNICODEUTIL_H_ */

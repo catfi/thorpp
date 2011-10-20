@@ -14,11 +14,27 @@
 
 namespace po = boost::program_options;
 
+extern int process_cpp_source(const std::string& to, const std::vector<std::string>& sources);
+extern int process_java_source(const std::string& to, const std::vector<std::string>& sources);
+extern int process_python_source(const std::string& to, const std::vector<std::string>& sources);
+
 int process(const std::string& from, const std::string& to, const std::vector<std::string>& sources)
 {
-	//comment_c_style = qi::lexeme[L"/*" > *(unicode::char_ - L"*/") > L"*/"];
 	// here we dispatch to different translator according to the from/to type
-	return 0;
+	if(from == "cpp")
+	{
+		return process_cpp_source(to, sources);
+	}
+	else if(from == "java")
+	{
+		return process_java_source(to, sources);
+	}
+	else if(from == "python")
+	{
+		return process_python_source(to, sources);
+	}
+
+	return -1;
 }
 
 int main(int argc, char** argv)

@@ -17,28 +17,15 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef ZILLIANS_CG_ACTION_CPPACTION_H_
-#define ZILLIANS_CG_ACTION_CPPACTION_H_
+#include "cg/Prerequisite.h"
 
-#include "cg/action/Common.h"
-
-namespace zillians { namespace cg { namespace action {
-
-struct CppAction
+int process_java_source(const std::string& to, const std::vector<std::string>& sources)
 {
-	struct start
+	if(to == "cpp")
 	{
-		DEFINE_ATTRIBUTES(void)
-		DEFINE_LOCALS()
+		return 0;
+	}
 
-		BEGIN_ACTION(init)
-		{
-
-		}
-		END_ACTION
-	};
-};
-
-} } }
-
-#endif /* ZILLIANS_CG_ACTION_CPPACTION_H_ */
+	std::cerr << "unrecognized target language" << std::endl;
+	return -1;
+}

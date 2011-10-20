@@ -29,18 +29,27 @@ using boost::spirit::ascii::no_case;
 using boost::spirit::repository::qi::iter_pos;
 using boost::spirit::omit;
 
-#define DECL_RULE(x) qi::rule<Iterator, typename SA::x::attribute_type, detail::WhiteSpace<Iterator>, typename SA::x::local_type> x
+#define DECL_RULE(x) qi::rule<Iterator, typename SA::x::attribute_type, detail::NonWhiteSpace<Iterator>, typename SA::x::local_type> x
 
 namespace zillians { namespace cg { namespace grammar {
+
+namespace detail {
 
 template <typename Iterator>
 struct NonWhiteSpace : qi::grammar<Iterator>
 {
+	NonWhiteSpace() : NonWhiteSpace::base_type(start)
+	{
 
+	}
+
+	qi::rule<Iterator> start;
 };
 
+}
+
 template <typename Iterator, typename SA>
-struct CppGrammar : qi::grammar<Iterator>
+struct CppGrammar : qi::grammar<Iterator, typename SA::start::attribute_type, detail::NonWhiteSpace<Iterator>, typename SA::start::local_type >
 {
 	CppGrammar() : CppGrammar::base_type(start)
 	{
@@ -50,20 +59,17 @@ struct CppGrammar : qi::grammar<Iterator>
 //		comment_cpp_style = qi::lexeme[L"//" > *(unicode::char_ - qi::eol) > qi::eol];
 //		comment_cpp_style.name("comment_in_cpp_style");
 //
-		start
-			= unicode::space    // tab/space/cr/lf
+//		start
+//			= unicode::space    // tab/space/cr/lf
 //			| comment_c_style   // c-style comment "/* */"
 //			| comment_cpp_style // cpp-style comment "//"
-			;
+//			;
 
-		start.name("cpp_source");
+//		start.name("cpp_source");
 	}
 
 
 	DECL_RULE(start);
-
-	qi::rule<Iterator> comment_c_style;
-	qi::rule<Iterator> comment_cpp_style;
 };
 
 } } }
