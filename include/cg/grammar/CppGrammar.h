@@ -1,20 +1,7 @@
 /**
- * Zillians MMO
- * Copyright (C) 2007-2011 Zillians.com, Inc.
+ * Zillians
+ * Copyright (C) 2011-2012 Zillians.com
  * For more information see http://www.zillians.com
- *
- * Zillians MMO is the library and runtime for massive multiplayer online game
- * development in utility computing model, which runs as a service for every
- * developer to build their virtual world running on our GPU-assisted machines.
- *
- * This is a close source library intended to be used solely within Zillians.com
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
- * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 #ifndef ZILLIANS_CG_GRAMMAR_CPPGRAMMAR_H_
@@ -29,45 +16,35 @@ using boost::spirit::ascii::no_case;
 using boost::spirit::repository::qi::iter_pos;
 using boost::spirit::omit;
 
-#define DECL_RULE(x) qi::rule<Iterator, typename SA::x::attribute_type, detail::NonWhiteSpace<Iterator>, typename SA::x::local_type> x
+#define DECL_RULE(x) qi::rule<Iterator, typename SA::x::attribute_type, typename SA::x::local_type> x
 
 namespace zillians { namespace cg { namespace grammar {
 
-namespace detail {
-
-template <typename Iterator>
-struct NonWhiteSpace : qi::grammar<Iterator>
-{
-	NonWhiteSpace() : NonWhiteSpace::base_type(start)
-	{
-
-	}
-
-	qi::rule<Iterator> start;
-};
-
-}
-
 template <typename Iterator, typename SA>
-struct CppGrammar : qi::grammar<Iterator, typename SA::start::attribute_type, detail::NonWhiteSpace<Iterator>, typename SA::start::local_type >
+struct CppGrammar : qi::grammar<Iterator, typename SA::start::attribute_type, typename SA::start::local_type >
 {
 	CppGrammar() : CppGrammar::base_type(start)
 	{
-//		comment_c_style = qi::lexeme[L"/*" > *(unicode::char_ - L"*/") > L"*/"];
-//		comment_c_style.name("comment_in_c_style");
-//
-//		comment_cpp_style = qi::lexeme[L"//" > *(unicode::char_ - qi::eol) > qi::eol];
-//		comment_cpp_style.name("comment_in_cpp_style");
-//
-//		start
-//			= unicode::space    // tab/space/cr/lf
-//			| comment_c_style   // c-style comment "/* */"
-//			| comment_cpp_style // cpp-style comment "//"
-//			;
+		code_block %= qi::lexeme[+(unicode::char_ - L"/*")];
+		code_block.name("code_block");
 
-//		start.name("cpp_source");
+		comment_block %= qi::lexeme[L"/*" > *(unicode::char_ - L"*/") > L"*/"];
+		comment_block.name("comment_block");
+
+		start = qi::eps [ typename SA::start::init() ]
+				> *( code_block [ typename SA::start::on_code_block() ]
+				   | comment_block [ typename SA::start::on_comment_block() ] )
+				> qi::eoi [ typename SA::start::fini() ];
+
+		start.name("cpp_source");
+
+//		debug(code_block);
+//		debug(comment_block);
+//		debug(start);
 	}
 
+	qi::rule<Iterator, std::wstring() > code_block;
+	qi::rule<Iterator, std::wstring() > comment_block;
 
 	DECL_RULE(start);
 };

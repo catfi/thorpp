@@ -1,20 +1,7 @@
 /**
- * Zillians MMO
- * Copyright (C) 2007-2011 Zillians.com, Inc.
+ * Zillians
+ * Copyright (C) 2011-2012 Zillians.com
  * For more information see http://www.zillians.com
- *
- * Zillians MMO is the library and runtime for massive multiplayer online game
- * development in utility computing model, which runs as a service for every
- * developer to build their virtual world running on our GPU-assisted machines.
- *
- * This is a close source library intended to be used solely within Zillians.com
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
- * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 #include "cg/Prerequisite.h"
@@ -22,6 +9,7 @@
 
 #include "cg/grammar/CppGrammar.h"
 #include "cg/action/CppAction.h"
+#include "cg/context/GeneratorContext.h"
 
 #include <boost/filesystem.hpp>
 
@@ -49,13 +37,17 @@ int process_cpp_source(const std::string& to, const std::vector<std::string>& so
 {
 	for(auto i = sources.begin(); i != sources.end(); ++i)
 	{
-		boost::filesystem::path p(*i);
-		if(strcmp(p.extension().c_str(), ".giggle") == 0)
+		boost::filesystem::path path(*i);
+		if(strcmp(path.extension().c_str(), ".giggle") == 0)
 		{
 			std::string filename = *i;
 			std::ifstream in(filename, std::ios_base::in);
 
-			if(!in.good()) return -1;
+			if(!in.good())
+			{
+				std::cerr << "Error: failed to open source file: " << filename << std::endl;
+				return -1;
+			}
 
 		    // ignore the BOM marking the beginning of a UTF-8 file in Windows
 		    if(in.peek() == '\xef')
@@ -65,8 +57,8 @@ int process_cpp_source(const std::string& to, const std::vector<std::string>& so
 		        s[3] = '\0';
 		        if (s != std::string("\xef\xbb\xbf"))
 		        {
-		            std::cerr << "parser error: unexpected characters from input file: " << filename << std::endl;
-		            return false;
+		            std::cerr << "Error: unexpected characters from input file: " << filename << std::endl;
+		            return -1;
 		        }
 		    }
 
@@ -86,14 +78,17 @@ int process_cpp_source(const std::string& to, const std::vector<std::string>& so
 				pos_iterator_type end;
 
 				grammar::CppGrammar<pos_iterator_type, action::CppAction> parser;
-				grammar::detail::NonWhiteSpace<pos_iterator_type> skipper;
 
-				if(!qi::phrase_parse(
+				if(!qi::parse(
 						begin, end,
-						parser,
-						skipper))
+						parser))
 				{
+					std::cerr << "Error: unrecognized parser error" << std::endl;
 					return -1;
+				}
+				else
+				{
+					std::wcout << context::GeneratorContext::instance()->buffer.str();
 				}
 			}
 			catch (const qi::expectation_failure<pos_iterator_type>& e)
@@ -102,7 +97,7 @@ int process_cpp_source(const std::string& to, const std::vector<std::string>& so
 
 				std::wstring current_line;
 				expand_tabs(e.first.get_currentline(), current_line);
-				std::wcerr << L"parse error at file " << pos.file << L" line " << pos.line
+				std::wcerr << L"Error: parse error at file " << pos.file << L" line " << pos.line
 						<< L" column " << pos.column << std::endl
 						<< L"'" << current_line << L"'" << std::endl
 						<< std::setw(pos.column) << L" " << L"^- here" << std::endl;
@@ -110,12 +105,6 @@ int process_cpp_source(const std::string& to, const std::vector<std::string>& so
 				return -1;
 			}
 		}
-	}
-
-	if(to == "cpp")
-	{
-
-		return 0;
 	}
 
 	std::cerr << "unrecognized target language" << std::endl;

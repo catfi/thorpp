@@ -1,26 +1,14 @@
 /**
- * Zillians MMO
- * Copyright (C) 2007-2011 Zillians.com, Inc.
+ * Zillians
+ * Copyright (C) 2011-2012 Zillians.com
  * For more information see http://www.zillians.com
- *
- * Zillians MMO is the library and runtime for massive multiplayer online game
- * development in utility computing model, which runs as a service for every
- * developer to build their virtual world running on our GPU-assisted machines.
- *
- * This is a close source library intended to be used solely within Zillians.com
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
- * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 #ifndef ZILLIANS_CG_ACTION_COMMON_H_
 #define ZILLIANS_CG_ACTION_COMMON_H_
 
 #include "cg/PrerequisiteBoost.h"
+
 #include <boost/mpl/bool.hpp>
 #include <boost/fusion/container/vector.hpp>
 #include <boost/type_traits/is_base_of.hpp>
@@ -65,5 +53,58 @@
 
 #define _local(i)   boost::fusion::at_c<i>(context.locals)
 #define _local_t(i) decltype(boost::fusion::at_c<i>(context.locals))
+
+namespace zillians { namespace cg { namespace action { namespace detail {
+
+template<typename T>
+struct is_fusion_vector : boost::is_base_of<boost::fusion::sequence_base<T>, T>
+{ };
+
+template<typename T>
+struct is_std_vector : boost::mpl::false_
+{ };
+
+template<typename _Tp, typename _Alloc>
+struct is_std_vector<std::vector<_Tp, _Alloc>> : boost::mpl::true_
+{ };
+
+template<int N, typename Attribute, bool IsFusionVector>
+struct attribute_accessor_impl;
+
+template<int N, typename Attribute>
+struct attribute_accessor_impl<N, Attribute, true>
+{
+	typedef typename boost::add_reference<
+	            typename boost::mpl::at_c<typename Attribute::types, N>::type
+	        >::type result_type;
+
+	static result_type get(Attribute& attribute)
+	{
+		return boost::fusion::at_c<N>(attribute);
+	}
+};
+
+template<int N, typename Attribute>
+struct attribute_accessor_impl<N, Attribute, false>
+{
+	typedef typename boost::add_reference<Attribute>::type result_type;
+	static result_type get(Attribute& attribute)
+	{
+		BOOST_MPL_ASSERT(( boost::mpl::bool_<N == 0> ));
+		return attribute;
+	}
+};
+
+template<int N, typename Attribute>
+struct attribute_accessor
+{
+	typedef typename attribute_accessor_impl<N, Attribute, is_fusion_vector<Attribute>::value>::result_type result_type;
+	static result_type get(Attribute& attribute)
+	{
+		return attribute_accessor_impl<N, Attribute, is_fusion_vector<Attribute>::value>::get(attribute);
+	}
+};
+
+} } } }
 
 #endif /* ZILLIANS_CG_ACTION_COMMON_H_ */

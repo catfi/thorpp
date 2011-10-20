@@ -1,5 +1,5 @@
 /**
- * Zillians MMO
+ * Zillians
  * Copyright (C) 2011-2012 Zillians.com
  * For more information see http://www.zillians.com
  */

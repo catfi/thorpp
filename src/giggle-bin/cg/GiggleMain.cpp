@@ -1,6 +1,6 @@
 /**
  * Zillians
- * Copyright (C) 2011-2011 Zillians.com
+ * Copyright (C) 2011-2012 Zillians.com
  * For more information see http://www.zillians.com
  */
 
@@ -42,8 +42,9 @@ int main(int argc, char** argv)
 	po::options_description options_desc("Usage");
 	options_desc.add_options()
 			("help,h", "show this help")
-			("from", po::value<std::string>(), "given source file type type")
-			("to", po::value<std::string>(), "target language for the stub function");
+			("input,i", po::value<std::vector<std::string>>(), "input files")
+			("from,f", po::value<std::string>(), "given source file type type")
+			("to,t", po::value<std::string>(), "target language for the stub function");
 
 	po::positional_options_description positional_options;
 	positional_options.add("input", -1);
@@ -56,27 +57,35 @@ int main(int argc, char** argv)
     catch(const po::error& e)
     {
     	std::cerr << "failed to parse command line: " << e.what() << std::endl;
-    	std::cerr << options_desc << std::endl;
+    	std::cerr << std::endl << options_desc << std::endl;
     	return -1;
     }
 
-	if(vm.count("help") > 0)
+	if(vm.count("help") > 0 || argc < 2)
 	{
-    	std::cout << "command line options: " << std::endl << std::endl;
-    	std::cout << options_desc << std::endl;
+    	std::cerr << std::endl << options_desc << std::endl;
     	return 0;
 	}
 
 	if(vm.count("from") != 1)
 	{
 		std::cerr << "source format is not specified" << std::endl;
-		std::cerr << options_desc << std::endl;
+		std::cerr << std::endl << options_desc << std::endl;
+		return -1;
 	}
 
 	if(vm.count("to") != 1)
 	{
 		std::cerr << "target language is not specified" << std::endl;
-		std::cerr << options_desc << std::endl;
+		std::cerr << std::endl << options_desc << std::endl;
+		return -1;
+	}
+
+	if(vm.count("input") == 0)
+	{
+		std::cerr << "Error: no input file is given" << std::endl;
+		std::cerr << std::endl << options_desc << std::endl;
+		return -1;
 	}
 
 	return process(vm["from"].as<std::string>(), vm["to"].as<std::string>(), vm["input"].as<std::vector<std::string>>());
