@@ -78,8 +78,33 @@ struct CppAction
 
 		BEGIN_ACTION(on_code_block)
 		{
+			if(!_local(0)) { detail::generateDefaultPrologue(); _local(0) = true; }
+			if(!_local(1)) { detail::generateDefaultSignature(); detail::generateDefaultCodeGenBegin(); _local(1) = true; }
+
 			std::wstring& code = _param(0);
-			std::wcout << "code: " << code << std::endl;
+			std::wstringstream& buffer = GeneratorContext::instance()->buffer;
+			buffer << L"\tstd::wcout <<\n\t\"";
+			for(int i = 0; i < code.length(); ++i)
+			{
+				wchar_t c = code.at(i);
+				if(c == L'\n')
+				{
+					buffer << L"\\n\"\n\t\"";
+				}
+				else if(c == L'\'')
+				{
+					buffer << L"\\'";
+				}
+				else if(c == L'\\')
+				{
+					buffer << L"\\\\";
+				}
+				else
+				{
+					buffer << c;
+				}
+			}
+			buffer << L"\";\n";
 		}
 		END_ACTION
 
@@ -99,7 +124,7 @@ struct CppAction
 
 				if(!_local(2))
 				{
-					GeneratorContext::instance()->buffer << (comment.c_str() + code_generation_tag.length());
+					GeneratorContext::instance()->buffer << (comment.c_str() + code_generation_tag.length()) << std::endl;
 				}
 				else
 				{
@@ -111,7 +136,7 @@ struct CppAction
 				if(!_local(0)) { detail::generateDefaultPrologue(); _local(0) = true; }
 				if(!_local(1))
 				{
-					GeneratorContext::instance()->buffer << (comment.c_str() + code_generation_tag.length());
+					GeneratorContext::instance()->buffer << (comment.c_str() + code_generation_tag.length()) << std::endl;
 					detail::generateDefaultCodeGenBegin();
 				}
 				else
