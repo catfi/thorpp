@@ -34,7 +34,7 @@ void generateDefaultCodeGenEnd()
 	GeneratorContext::instance()->buffer
 			<< std::endl
 			<< L"\tstd::wcout.rdbuf(__old_buf);" << std::endl
-			<< L"\tss << __redirect_stream;" << std::endl
+			<< L"\tss << __redirect_stream.str();" << std::endl
 			<< L"}" << std::endl;
 }
 
