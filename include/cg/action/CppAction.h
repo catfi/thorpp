@@ -81,11 +81,13 @@ struct CppAction
 		BEGIN_ACTION(on_code_block)
 		{
 			std::wstring& code = _param(0);
-			std::wstring dummy = code;
-			boost::trim(dummy);
 
+			// ignore any useless code block before first useful code block
+			// this is done to allow spaces between prologue block and signature block
 			if(!_local(0) || !_local(1))
 			{
+				std::wstring dummy = code;
+				boost::trim(dummy);
 				if(dummy.length() == 0)
 					return;
 			}
