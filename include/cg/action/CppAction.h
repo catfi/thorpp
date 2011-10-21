@@ -80,10 +80,19 @@ struct CppAction
 
 		BEGIN_ACTION(on_code_block)
 		{
+			std::wstring& code = _param(0);
+			std::wstring dummy = code;
+			boost::trim(dummy);
+
+			if(!_local(0) || !_local(1))
+			{
+				if(dummy.length() == 0)
+					return;
+			}
+
 			if(!_local(0)) { detail::generateDefaultPrologue(); _local(0) = true; }
 			if(!_local(1)) { detail::generateDefaultSignature(); detail::generateDefaultCodeGenBegin(); _local(1) = true; }
 
-			std::wstring& code = _param(0);
 			std::wstringstream& buffer = GeneratorContext::instance()->buffer;
 			buffer << L"\tstd::wcout <<\n\t\"";
 			for(int i = 0; i < code.length(); ++i)
@@ -183,8 +192,12 @@ struct CppAction
 				if(!_local(0)) { detail::generateDefaultPrologue(); _local(0) = true; }
 				if(!_local(1))
 				{
-					GeneratorContext::instance()->buffer << (comment.c_str() + code_generation_tag.length()) << std::endl;
+					std::wstring signature(comment.c_str() + signature_tag.length());
+					boost::trim(signature);
+
+					GeneratorContext::instance()->buffer << signature << std::endl;
 					detail::generateDefaultCodeGenBegin();
+					_local(1) = true;
 				}
 				else
 				{
