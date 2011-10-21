@@ -13,6 +13,7 @@ namespace zillians { namespace cg { namespace context {
 
 struct GeneratorContext : Singleton<GeneratorContext, SingletonInitialization::automatic>
 {
+	std::string source;
 	std::wstringstream buffer;
 };
 

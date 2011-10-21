@@ -9,6 +9,8 @@
 
 #include "cg/action/Common.h"
 #include "cg/context/GeneratorContext.h"
+#include <boost/filesystem.hpp>
+#include <boost/algorithm/string.hpp>
 
 using zillians::cg::context::GeneratorContext;
 
@@ -91,6 +93,10 @@ struct CppAction
 				{
 					buffer << L"\\n\"\n\t\"";
 				}
+				else if(c == L'\"')
+				{
+					buffer << L"\\\"";
+				}
 				else if(c == L'\'')
 				{
 					buffer << L"\\'";
@@ -113,6 +119,7 @@ struct CppAction
 			std::wstring& comment = _param(0);
 
 			const static std::wstring code_generation_tag (L"[[[code");
+			const static std::wstring code_generation_include_tag (L"[[[code_include");
 			const static std::wstring prologue_tag        (L"[[[prologue");
 			const static std::wstring epilogue_tag        (L"[[[epilogue");
 			const static std::wstring signature_tag       (L"[[[signature");
@@ -124,11 +131,51 @@ struct CppAction
 
 				if(!_local(2))
 				{
-					GeneratorContext::instance()->buffer << (comment.c_str() + code_generation_tag.length()) << std::endl;
+					if(comment.compare(0, code_generation_include_tag.length(), code_generation_include_tag) == 0)
+					{
+						std::wstring s(comment.c_str() + code_generation_include_tag.length());
+						boost::trim(s);
+						boost::filesystem::path p(s);
+
+						std::ifstream in;
+						boost::filesystem::path in_p;
+						if(p.is_absolute())
+						{
+							in_p = p;
+							in.open(p.c_str(), std::ios_base::in);
+						}
+						else
+						{
+							boost::filesystem::path relative_p(GeneratorContext::instance()->source);
+							relative_p = relative_p.parent_path();
+							if(relative_p.empty())
+							{
+								relative_p = boost::filesystem::current_path();
+							}
+							relative_p /= p;
+
+							in_p = relative_p;
+							in.open(relative_p.c_str());
+						}
+
+						if(in.good())
+						{
+							GeneratorContext::instance()->buffer << in.rdbuf();
+						}
+						else
+						{
+							std::cerr << "Error: failed to open include file: " << in_p << std::endl;
+						}
+					}
+					else
+					{
+						GeneratorContext::instance()->buffer << (comment.c_str() + code_generation_tag.length()) << std::endl;
+					}
 				}
 				else
 				{
-					// epilogue has been emited, the code block is ignored, throw out some warning here
+					// throw out some warning here
+					std::cerr << "Warn: epilogue has been emitted, the epilogue block is ignored" << std::endl;
 				}
 			}
 			else if(comment.compare(0, signature_tag.length(), signature_tag) == 0)
@@ -141,7 +188,8 @@ struct CppAction
 				}
 				else
 				{
-					// the signautre has been generated, the signature block is ignored
+					// throw out some warning here
+					std::cerr << "Warn: signautre has been emitted, the signautre block is ignored" << std::endl;
 				}
 			}
 			else if(comment.compare(0, prologue_tag.length(), prologue_tag) == 0)
@@ -154,7 +202,8 @@ struct CppAction
 				}
 				else
 				{
-					// the prologue has been generated, the prologue block is ignored
+					// throw out some warning here
+					std::cerr << "Warn: prologue has been emitted, the prologue block is ignored" << std::endl;
 				}
 			}
 			else if(comment.compare(0, epilogue_tag.length(), epilogue_tag) == 0)
@@ -167,7 +216,8 @@ struct CppAction
 				}
 				else
 				{
-					// the epilogue has been generated, the epilogue block is ignored
+					// throw out some warning here
+					std::cerr << "Warn: epilogue has been emitted, the epilogue block is ignored" << std::endl;
 				}
 			}
 		}
