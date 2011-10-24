@@ -15,6 +15,13 @@ struct GeneratorContext : Singleton<GeneratorContext, SingletonInitialization::a
 {
 	std::string source;
 	std::wstringstream buffer;
+
+	struct
+	{
+		struct {
+			bool capture_cout_or_wcout;
+		} cpp;
+	} settings;
 };
 
 } } }

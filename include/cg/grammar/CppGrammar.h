@@ -20,32 +20,80 @@ using boost::spirit::omit;
 
 namespace zillians { namespace cg { namespace grammar {
 
+namespace detail {
+
+template <typename Iterator, typename SA>
+struct Identifier : qi::grammar<Iterator, std::wstring()>
+{
+	Identifier() : Identifier::base_type(start)
+	{
+		start %= qi::lexeme[ ((unicode::alpha | L'_') > *(unicode::alnum | L'_')) ];
+
+		debug(start);
+	}
+
+	qi::rule<Iterator, std::wstring()> keyword;
+	qi::rule<Iterator, std::wstring()> start;
+};
+
+}
+
 template <typename Iterator, typename SA>
 struct CppGrammar : qi::grammar<Iterator, typename SA::start::attribute_type, typename SA::start::local_type >
 {
 	CppGrammar() : CppGrammar::base_type(start)
 	{
-		code_block %= qi::lexeme[+(unicode::char_ - L"/*")];
-		code_block.name("code_block");
+		opcode = qi::lit(L"replace") [ typename SA::opcode::init_replace() ]
+		       | qi::lit(L"include") [ typename SA::opcode::init_include() ];
 
-		comment_block %= qi::lexeme[L"/*" > *(unicode::char_ - L"*/") > L"*/"];
-		comment_block.name("comment_block");
+		parameter = (IDENTIFIER > L'=' > IDENTIFIER) [ typename SA::parameter::init() ];
+
+		parameter_list %= qi::eps [typename SA::parameter_list::init() ]
+				       >> parameter [ typename SA::parameter_list::append() ]
+				       >> *(L"," > parameter [ typename SA::parameter_list::append() ] );
+
+		options = (qi::eps >> L"(" > opcode > L":" > parameter_list > L")") [ typename SA::options::init() ];
+
+		block = qi::lexeme[+(unicode::char_ - (qi::lit(L"//[[[") | qi::lit(L"//]]]")))] [ typename SA::block::init() ];
+
+		tag_gen = (qi::lit(L"//[[[gen") > -options) [ typename SA::tag_gen::init() ];
+
+		tag_code = (qi::lit(L"//[[[code") > -options) [ typename SA::tag_code::init() ];
 
 		start = qi::eps [ typename SA::start::init() ]
-				> *( code_block [ typename SA::start::on_code_block() ]
-				   | comment_block [ typename SA::start::on_comment_block() ] )
+				> *( block [ typename SA::start::on_block() ]
+				   | tag_gen [ typename SA::start::on_tag_gen() ]
+				   | tag_code [ typename SA::start::on_tag_code() ] )
 				> qi::eoi [ typename SA::start::fini() ];
 
-		start.name("cpp_source");
+		opcode.name("opcode");
+		parameter.name("parameter");
+		parameter_list.name("parameter_list");
+		options.name("options");
+		block.name("block");
+		tag_gen.name("tag_gen");
+		tag_code.name("tag_code");
+		start.name("start");
 
-//		debug(code_block);
-//		debug(comment_block);
-//		debug(start);
+		debug(opcode);
+		debug(parameter);
+		debug(parameter_list);
+		debug(options);
+		debug(block);
+		debug(tag_gen);
+		debug(tag_code);
+		debug(start);
 	}
 
-	qi::rule<Iterator, std::wstring() > code_block;
-	qi::rule<Iterator, std::wstring() > comment_block;
+	detail::Identifier<Iterator, SA> IDENTIFIER;
 
+	DECL_RULE(opcode);
+	DECL_RULE(parameter);
+	DECL_RULE(parameter_list);
+	DECL_RULE(options);
+	DECL_RULE(block);
+	DECL_RULE(tag_gen);
+	DECL_RULE(tag_code);
 	DECL_RULE(start);
 };
 
