@@ -207,6 +207,18 @@ struct CppAction
 		END_ACTION
 	};
 
+	struct tag_close
+	{
+		DEFINE_ATTRIBUTES(tag_close*)
+		DEFINE_LOCALS()
+
+		BEGIN_ACTION(init)
+		{
+			_result = new tag_close();
+		}
+		END_ACTION
+	};
+
 	struct start
 	{
 		DEFINE_ATTRIBUTES(void)
@@ -241,6 +253,12 @@ struct CppAction
 		END_ACTION
 
 		BEGIN_ACTION(on_tag_code)
+		{
+
+		}
+		END_ACTION
+
+		BEGIN_ACTION(on_tag_close)
 		{
 
 		}
