@@ -6,7 +6,7 @@
 
 include_directories(${PROJECT_ROOT_DIR}/include/)
 
-add_executable(ts-macro
+add_executable(thorpp
     cg/UnicodeUtil.cpp
     cg/Main.cpp
     cg/CppDispatch.cpp
@@ -14,6 +14,6 @@ add_executable(ts-macro
     cg/PythonDispatch.cpp
     )
     
-target_link_libraries(ts-macro
+target_link_libraries(thorpp
     ${Boost_LIBRARIES}
     )
