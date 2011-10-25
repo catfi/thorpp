@@ -4,5 +4,5 @@
 # For more information see http://www.zillians.com
 #
 
-add_subdirectory(gg-bin)
+add_subdirectory(ts-macro)
 
