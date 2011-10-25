@@ -12,7 +12,9 @@
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 
-using zillians::cg::context::GeneratorContext;
+using namespace zillians::cg::context;
+
+//#define CTX GeneratorContext::instance()
 
 namespace zillians { namespace cg { namespace action {
 
@@ -94,127 +96,174 @@ struct CppAction
 {
 	struct opcode
 	{
-		DEFINE_ATTRIBUTES(opcode*)
+		DEFINE_ATTRIBUTES(GeneratorOptions::OpCode)
 		DEFINE_LOCALS()
 
 		BEGIN_ACTION(init_replace)
 		{
-			_result = new opcode(L"replace");
+			_result = GeneratorOptions::OpCode::Replace;
 		}
 		END_ACTION
 
 		BEGIN_ACTION(init_include)
 		{
-			_result = new opcode(L"include");
+			_result = GeneratorOptions::OpCode::Include;
 		}
 		END_ACTION
-
-		opcode(const std::wstring& s) : op(s)
-		{ }
-
-		std::wstring op;
 	};
 
 	struct parameter
 	{
-		DEFINE_ATTRIBUTES(parameter*)
+		DEFINE_ATTRIBUTES(GeneratorParameter*)
 		DEFINE_LOCALS()
 
 		BEGIN_ACTION(init)
 		{
-			_result = new parameter(_param(0), _param(1));
+			_result = new GeneratorParameter(_param(0), _param(1));
 		}
 		END_ACTION
-
-		parameter(const std::wstring& k, const std::wstring& v) : key(k), value(v)
-		{ }
-
-		std::wstring key;
-		std::wstring value;
 	};
 
 	struct parameter_list
 	{
-		DEFINE_ATTRIBUTES(parameter_list*)
+		DEFINE_ATTRIBUTES(GeneratorParameterList*)
 		DEFINE_LOCALS()
 
 		BEGIN_ACTION(init)
 		{
-			_result = new parameter_list();
+			_result = new GeneratorParameterList();
 		}
 		END_ACTION
 
 		BEGIN_ACTION(append)
 		{
-			_result->all.push_back(_param(0));
+			_result->data.push_back(_param(0));
 		}
 		END_ACTION
-
-		std::vector<parameter*> all;
 	};
 
 	struct options
 	{
-		DEFINE_ATTRIBUTES(options*)
+		DEFINE_ATTRIBUTES(GeneratorOptions*)
 		DEFINE_LOCALS()
 
 		BEGIN_ACTION(init)
 		{
-			_result = new options(_param(0), _param(1));
+			_result = new GeneratorOptions(_param(0), _param(1));
 		}
 		END_ACTION
-
-		options(opcode* a, parameter_list* l) : op(a), list(l)
-		{ }
-
-		opcode* op;
-		parameter_list* list;
 	};
 
 	struct block
 	{
-		DEFINE_ATTRIBUTES(block*)
+		DEFINE_ATTRIBUTES(GeneratorBlock*)
 		DEFINE_LOCALS()
 
 		BEGIN_ACTION(init)
 		{
+			_result = new GeneratorBlock(_param(0));
+		}
+		END_ACTION
+	};
 
+	struct tag_global
+	{
+		DEFINE_ATTRIBUTES(GeneratorTag*)
+		DEFINE_LOCALS()
+
+		BEGIN_ACTION(init)
+		{
+			if(_param(0).is_initialized())
+				_result = new GeneratorTag(L"global", *_param(0), _param(1).is_initialized());
+			else
+				_result = new GeneratorTag(L"global", NULL, _param(1).is_initialized());
+		}
+		END_ACTION
+	};
+
+	struct tag_default_entry
+	{
+		DEFINE_ATTRIBUTES(GeneratorTag*)
+		DEFINE_LOCALS()
+
+		BEGIN_ACTION(init)
+		{
+			if(_param(0).is_initialized())
+				_result = new GeneratorTag(L"default_entry", *_param(0), _param(1).is_initialized());
+			else
+				_result = new GeneratorTag(L"default_entry", NULL, _param(1).is_initialized());
+		}
+		END_ACTION
+	};
+
+	struct tag_entry
+	{
+		DEFINE_ATTRIBUTES(GeneratorTag*)
+		DEFINE_LOCALS()
+
+		BEGIN_ACTION(init)
+		{
+			if(_param(0).is_initialized())
+				_result = new GeneratorTag(L"entry", *_param(0), _param(1).is_initialized());
+			else
+				_result = new GeneratorTag(L"entry", NULL, _param(1).is_initialized());
+		}
+		END_ACTION
+	};
+
+	struct tag_driver
+	{
+		DEFINE_ATTRIBUTES(GeneratorTag*)
+		DEFINE_LOCALS()
+
+		BEGIN_ACTION(init)
+		{
+			if(_param(0).is_initialized())
+				_result = new GeneratorTag(L"driver", *_param(0), _param(1).is_initialized());
+			else
+				_result = new GeneratorTag(L"driver", NULL, _param(1).is_initialized());
 		}
 		END_ACTION
 	};
 
 	struct tag_gen
 	{
-		DEFINE_ATTRIBUTES(tag_gen*)
+		DEFINE_ATTRIBUTES(GeneratorTag*)
 		DEFINE_LOCALS()
 
 		BEGIN_ACTION(init)
 		{
-			_result = new tag_gen();
+			if(_param(0).is_initialized())
+				_result = new GeneratorTag(L"gen", *_param(0), _param(1).is_initialized());
+			else
+				_result = new GeneratorTag(L"gen", NULL, _param(1).is_initialized());
 		}
 		END_ACTION
 	};
 
 	struct tag_code
 	{
-		DEFINE_ATTRIBUTES(tag_code*)
+		DEFINE_ATTRIBUTES(GeneratorTag*)
 		DEFINE_LOCALS()
 
 		BEGIN_ACTION(init)
 		{
-			_result = new tag_code();
+			if(_param(0).is_initialized())
+				_result = new GeneratorTag(L"code", *_param(0), _param(1).is_initialized());
+			else
+				_result = new GeneratorTag(L"code", NULL, _param(1).is_initialized());
 		}
 		END_ACTION
 	};
 
 	struct tag_close
 	{
-		DEFINE_ATTRIBUTES(tag_close*)
+		DEFINE_ATTRIBUTES(GeneratorTag*)
 		DEFINE_LOCALS()
 
 		BEGIN_ACTION(init)
 		{
-			_result = new tag_close();
+			_result = new GeneratorTag(L"close", NULL);
 		}
 		END_ACTION
 	};
@@ -222,25 +271,57 @@ struct CppAction
 	struct start
 	{
 		DEFINE_ATTRIBUTES(void)
-		DEFINE_LOCALS(bool /*prologue_generated*/, bool /*signature_generated*/, bool /*epilogue_generated*/)
+		DEFINE_LOCALS()
 
 		BEGIN_ACTION(init)
 		{
-			_local(0) = false;
-			_local(1) = false;
-			_local(2) = false;
+			GeneratorContext* ctx = GeneratorContext::instance();
+			ctx->state.prologue_generated = false;
+			ctx->state.signature_generated = false;
+			ctx->state.epilogue_generated = false;
 		}
 		END_ACTION
 
 		BEGIN_ACTION(fini)
 		{
-			if(!_local(0)) { detail::generateDefaultPrologue(); _local(0) = true; }
-			if(!_local(1)) { detail::generateDefaultSignature(); detail::generateDefaultCodeGenBegin(); _local(1) = true; }
-			if(!_local(2)) { detail::generateDefaultCodeGenEnd(); detail::generateDefaultEpilogue(); _local(2) = true; }
+			GeneratorContext* ctx = GeneratorContext::instance();
+
+			if(!ctx->state.prologue_generated)  { detail::generateDefaultPrologue(); ctx->state.prologue_generated = true; }
+			if(!ctx->state.signature_generated) { detail::generateDefaultSignature(); detail::generateDefaultCodeGenBegin(); ctx->state.signature_generated = true; }
+			if(!ctx->state.epilogue_generated)  { detail::generateDefaultCodeGenEnd(); detail::generateDefaultEpilogue(); ctx->state.epilogue_generated = true; }
+
+			if(ctx->state.tag_stack.size() != 0)
+			{
+				// TODO unmatched opening/closing tags, the code generation is not complete
+			}
 		}
 		END_ACTION
 
 		BEGIN_ACTION(on_block)
+		{
+//			std::wcout << _param(0)->data << std::endl;
+		}
+		END_ACTION
+
+		BEGIN_ACTION(on_tag_global)
+		{
+
+		}
+		END_ACTION
+
+		BEGIN_ACTION(on_tag_default_entry)
+		{
+
+		}
+		END_ACTION
+
+		BEGIN_ACTION(on_tag_entry)
+		{
+
+		}
+		END_ACTION
+
+		BEGIN_ACTION(on_tag_driver)
 		{
 
 		}
@@ -260,7 +341,15 @@ struct CppAction
 
 		BEGIN_ACTION(on_tag_close)
 		{
-
+			GeneratorContext* ctx = GeneratorContext::instance();
+			if(ctx->state.tag_stack.size() > 0)
+			{
+				ctx->state.tag_stack.pop();
+			}
+			else
+			{
+				// TODO unmatched opening/closing tags, the code generation is not complete
+			}
 		}
 		END_ACTION
 
