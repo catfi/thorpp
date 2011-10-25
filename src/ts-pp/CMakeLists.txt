@@ -6,7 +6,7 @@
 
 include_directories(${PROJECT_ROOT_DIR}/include/)
 
-add_executable(gg
+add_executable(ts-macro
     cg/UnicodeUtil.cpp
     cg/Main.cpp
     cg/CppDispatch.cpp
@@ -14,6 +14,6 @@ add_executable(gg
     cg/PythonDispatch.cpp
     )
     
-target_link_libraries(gg
+target_link_libraries(ts-macro
     ${Boost_LIBRARIES}
     )

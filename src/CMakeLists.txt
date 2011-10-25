@@ -4,5 +4,5 @@
 # For more information see http://www.zillians.com
 #
 
-add_subdirectory(ts-macro)
+add_subdirectory(ts-pp)
 
