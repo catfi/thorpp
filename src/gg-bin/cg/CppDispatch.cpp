@@ -40,7 +40,7 @@ int process_cpp_source(const std::string& to, const std::vector<std::string>& so
 		for(auto i = sources.begin(); i != sources.end(); ++i)
 		{
 			boost::filesystem::path path(*i);
-			if(strcmp(path.extension().c_str(), ".gg") == 0)
+			if(strcmp(path.extension().c_str(), ".lp") == 0)
 			{
 				std::string filename = *i;
 				std::ifstream in(filename, std::ios_base::in);
@@ -90,7 +90,7 @@ int process_cpp_source(const std::string& to, const std::vector<std::string>& so
 					}
 					else
 					{
-						std::wcout << context::GeneratorContext::instance()->buffer.str();
+						std::wcout << context::GeneratorContext::instance()->buffer_composed.str();
 					}
 				}
 				catch (const qi::expectation_failure<pos_iterator_type>& e)

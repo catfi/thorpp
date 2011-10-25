@@ -7,6 +7,7 @@
 #ifndef ZILLIANS_CG_CONTEXT_GENERATORCONTEXT_H_
 #define ZILLIANS_CG_CONTEXT_GENERATORCONTEXT_H_
 
+#include "cg/Prerequisite.h"
 #include "cg/Singleton.h"
 
 namespace zillians { namespace cg { namespace context {
@@ -37,19 +38,34 @@ struct GeneratorParameterList
 
 struct GeneratorOptions
 {
-	enum class OpCode : unsigned int
+	struct OpCode
 	{
-		Replace,
-		Include,
+		enum type
+		{
+			Replace,
+			Include,
+			Auto,
+		};
+
+		static std::wstring toString(type t)
+		{
+			switch(t)
+			{
+			case Replace: return L"replace";
+			case Include: return L"include";
+			case Auto: return L"auto";
+			default: return L"invalid";
+			}
+		}
 	};
 
-	GeneratorOptions(OpCode opcode, GeneratorParameterList* list) : opcode(opcode), list(list)
+	GeneratorOptions(OpCode::type opcode, GeneratorParameterList* list) : opcode(opcode), list(list)
 	{ }
 
 	~GeneratorOptions()
 	{ if(list) delete list; }
 
-	OpCode opcode;
+	OpCode::type opcode;
 	GeneratorParameterList* list;
 };
 
@@ -77,14 +93,14 @@ struct GeneratorBlock
 struct GeneratorContext : Singleton<GeneratorContext, SingletonInitialization::automatic>
 {
 	std::string source;
-	std::wstringstream buffer;
+	std::wstringstream buffer_driver;
+	std::wstringstream buffer_composed;
 
 	struct
 	{
-		bool prologue_generated;
-		bool signature_generated;
-		bool epilogue_generated;
+		bool global_generated;
 		std::stack<GeneratorTag*> tag_stack;
+		std::vector<std::function<void()>> transforms;
 	} state;
 
 	struct

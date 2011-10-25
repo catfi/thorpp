@@ -21,6 +21,7 @@
 #include <stack>
 #include <list>
 #include <algorithm>
+#include <functional>
 
 #define BOOST_SPIRIT_UNICODE
 #include <boost/spirit/include/qi.hpp>
