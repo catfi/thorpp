@@ -4,5 +4,5 @@
 # For more information see http://www.zillians.com
 #
 
-add_subdirectory(ts-pp)
+add_subdirectory(thorpp)
 
