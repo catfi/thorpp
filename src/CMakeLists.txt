@@ -4,5 +4,5 @@
 # For more information see http://www.zillians.com
 #
 
-add_subdirectory(giggle-bin)
+add_subdirectory(thorpp)
 

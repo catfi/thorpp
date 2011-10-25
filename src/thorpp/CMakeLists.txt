@@ -6,14 +6,14 @@
 
 include_directories(${PROJECT_ROOT_DIR}/include/)
 
-add_executable(giggle
+add_executable(thorpp
     cg/UnicodeUtil.cpp
-    cg/GiggleMain.cpp
-    cg/GiggleCppDispatch.cpp
-    cg/GiggleJavaDispatch.cpp
-    cg/GigglePythonDispatch.cpp
+    cg/Main.cpp
+    cg/CppDispatch.cpp
+    cg/JavaDispatch.cpp
+    cg/PythonDispatch.cpp
     )
     
-target_link_libraries(giggle
+target_link_libraries(thorpp
     ${Boost_LIBRARIES}
     )
