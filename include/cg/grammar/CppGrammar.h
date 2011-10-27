@@ -74,9 +74,9 @@ struct CppGrammar : qi::grammar<Iterator, typename SA::start::attribute_type, ty
 {
 	CppGrammar() : CppGrammar::base_type(start)
 	{
-		opcode = qi::lit(L"-replace") [ typename SA::opcode::template init<context::GeneratorOptions::OpCode::Replace>() ]
-		       | qi::lit(L"-include") [ typename SA::opcode::template init<context::GeneratorOptions::OpCode::Include>() ]
-		       | qi::lit(L"-auto")    [ typename SA::opcode::template init<context::GeneratorOptions::OpCode::Auto>()    ];
+		opcode = qi::lit(L"replace") [ typename SA::opcode::template init<context::GeneratorOptions::OpCode::Replace>() ]
+		       | qi::lit(L"include") [ typename SA::opcode::template init<context::GeneratorOptions::OpCode::Include>() ]
+		       | qi::lit(L"auto")    [ typename SA::opcode::template init<context::GeneratorOptions::OpCode::Auto>()    ];
 
 		parameter = (IDENTIFIER > qi::omit[(*unicode::space)] > L'=' > qi::omit[(*unicode::space)] > ( IDENTIFIER | STRING_LITERAL ) ) [ typename SA::parameter::init() ];
 
@@ -84,7 +84,7 @@ struct CppGrammar : qi::grammar<Iterator, typename SA::start::attribute_type, ty
 				       >> parameter [ typename SA::parameter_list::append() ]
 				       >> *( qi::omit[(*unicode::space)] >> L"," > qi::omit[(*unicode::space)] > parameter [ typename SA::parameter_list::append() ] );
 
-		options = (qi::eps >> opcode > -(L"(" > parameter_list > L")")) [ typename SA::options::init() ];
+		options = (qi::eps >> L"(" > opcode > -(L":" > parameter_list) > L")") [ typename SA::options::init() ];
 
 		block = qi::as_wstring[qi::lexeme[+(unicode::char_ - (qi::lit(L"//[[[") | qi::lit(L"//]]]")))]] [ typename SA::block::init() ];
 

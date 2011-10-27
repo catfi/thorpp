@@ -40,7 +40,7 @@ int process_cpp_source(const std::string& to, const std::vector<std::string>& so
 		for(auto i = sources.begin(); i != sources.end(); ++i)
 		{
 			boost::filesystem::path path(*i);
-			if(strcmp(path.extension().c_str(), ".tpp") == 0)
+			if(strcmp(path.extension().c_str(), ".lp") == 0)
 			{
 				std::string filename = *i;
 				std::ifstream in(filename, std::ios_base::in);
